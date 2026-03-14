@@ -8,7 +8,7 @@ class Program
       Console.CursorVisible = false;
 
       char[,] map = ReadMap("map.txt");
-      ConsoleKeyInfo pressedKey = new ConsoleKeyInfo('w', ConsoleKey.W, false, false, false);
+      ConsoleKeyInfo pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
 
       int pacmanX = 1;
       int pacmanY = 1;
@@ -30,7 +30,7 @@ class Program
 
          pressedKey = Console.ReadKey();
 
-         HandleInput(pressedKey, ref pacmanX, ref pacmanY);
+         HandleInput(pressedKey, ref pacmanX, ref pacmanY, map);
       }
    }
    private static char[,] ReadMap(string path)
@@ -53,16 +53,22 @@ class Program
          Console.WriteLine();
       }
    }
-   private static void HandleInput(ConsoleKeyInfo pressedKey, ref int pacmanX, ref int pacmanY)
+   private static void HandleInput(ConsoleKeyInfo pressedKey, ref int pacmanX, ref int pacmanY, char[,] map)
    {
-      if (pressedKey.Key == ConsoleKey.W) --pacmanY;
-      else if (pressedKey.Key == ConsoleKey.S) ++pacmanY;
-      else if (pressedKey.Key == ConsoleKey.A) --pacmanX;
-      else if (pressedKey.Key == ConsoleKey.D) ++pacmanX;
+      int[] direction = GetDirection(pressedKey);
+
+      int nextX = pacmanX + direction[0];
+      int nextY = pacmanY + direction[1];
+
+      if (map[nextY, nextX] == ' ')
+      {
+         pacmanX = nextX;
+         pacmanY = nextY;
+      }
    }
    private static int[] GetDirection(ConsoleKeyInfo pressedKey)
    {
-      int[] direction = { 0, 0 };
+      int[] direction = [0, 0];
 
       if (pressedKey.Key == ConsoleKey.W) direction[1] = -1;
       else if (pressedKey.Key == ConsoleKey.S) direction[1] = 1;
