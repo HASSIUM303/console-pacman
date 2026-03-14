@@ -6,7 +6,20 @@ class Program
    static void Main()
    {
       char[,] map = ReadMap("map.txt");
-      DrawMap(map);
+      
+      while (true)
+      {
+         Console.Clear();
+
+         Console.ForegroundColor = ConsoleColor.Blue;
+         DrawMap(map);
+
+         Console.ForegroundColor = ConsoleColor.Yellow;
+         Console.SetCursorPosition(1, 1);
+         Console.Write("@");
+
+         Thread.Sleep(1000);
+      }
    }
    private static char[,] ReadMap(string path)
    {
