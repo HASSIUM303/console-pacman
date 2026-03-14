@@ -5,8 +5,14 @@ class Program
 {
    static void Main()
    {
+      Console.CursorVisible = false;
+
       char[,] map = ReadMap("map.txt");
-      
+      ConsoleKeyInfo pressedKey = new ConsoleKeyInfo('w', ConsoleKey.W, false, false, false);
+
+      int pacmanX = 1;
+      int pacmanY = 1;
+
       while (true)
       {
          Console.Clear();
@@ -15,10 +21,16 @@ class Program
          DrawMap(map);
 
          Console.ForegroundColor = ConsoleColor.Yellow;
-         Console.SetCursorPosition(1, 1);
+         Console.SetCursorPosition(pacmanX, pacmanY);
          Console.Write("@");
 
-         Thread.Sleep(1000);
+         Console.ForegroundColor = ConsoleColor.Red;
+         Console.SetCursorPosition(32, 0);
+         Console.Write(pressedKey.KeyChar);
+
+         pressedKey = Console.ReadKey();
+
+         HandleInput(pressedKey, ref pacmanX, ref pacmanY);
       }
    }
    private static char[,] ReadMap(string path)
@@ -40,6 +52,10 @@ class Program
             Console.Write(map[x, y]);
          Console.WriteLine();
       }
+   }
+   private static void HandleInput(ConsoleKeyInfo pressedKey, ref int pacmanX, ref int pacmanY)
+   {
+      
    }
    private static int GetMaxLengthOfLine(string[] lines)
    {
