@@ -55,7 +55,11 @@ class Program
    }
    private static void HandleInput(ConsoleKeyInfo pressedKey, ref int pacmanX, ref int pacmanY)
    {
-      
+      if (pressedKey.Key == ConsoleKey.W) --pacmanY;
+      else if (pressedKey.Key == ConsoleKey.S) ++pacmanY;
+      else if (pressedKey.Key == ConsoleKey.D) ++pacmanX;
+      else if (pressedKey.Key == ConsoleKey.A) --pacmanX;
+
    }
    private static int GetMaxLengthOfLine(string[] lines)
    {
