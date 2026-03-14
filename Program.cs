@@ -12,6 +12,7 @@ class Program
 
       int pacmanX = 1;
       int pacmanY = 1;
+      int score = 0;
 
       while (true)
       {
@@ -26,11 +27,11 @@ class Program
 
          Console.ForegroundColor = ConsoleColor.Red;
          Console.SetCursorPosition(32, 0);
-         Console.Write(pressedKey.KeyChar);
+         Console.Write("Score: {0}", score);
 
          pressedKey = Console.ReadKey();
 
-         HandleInput(pressedKey, ref pacmanX, ref pacmanY, map);
+         HandleInput(pressedKey, ref pacmanX, ref pacmanY, map, ref score);
       }
    }
    private static char[,] ReadMap(string path)
@@ -53,17 +54,25 @@ class Program
          Console.WriteLine();
       }
    }
-   private static void HandleInput(ConsoleKeyInfo pressedKey, ref int pacmanX, ref int pacmanY, char[,] map)
+   private static void HandleInput(ConsoleKeyInfo pressedKey, ref int pacmanX, ref int pacmanY, char[,] map, ref int score)
    {
       int[] direction = GetDirection(pressedKey);
 
       int nextX = pacmanX + direction[0];
       int nextY = pacmanY + direction[1];
 
-      if (map[nextY, nextX] == ' ')
+      char nextCell = map[nextY, nextX];
+
+      if (nextCell == ' ' || nextCell == '.')
       {
          pacmanX = nextX;
          pacmanY = nextY;
+
+         if(nextCell == '.')
+         {
+            score++;
+            map[nextY, nextX] = ' ';
+         }
       }
    }
    private static int[] GetDirection(ConsoleKeyInfo pressedKey)
