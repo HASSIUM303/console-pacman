@@ -1,1 +1,10 @@
-﻿Console.WriteLine("Hello, World!");
+﻿using System;
+using System.IO;
+
+class Program
+{
+   static void Main()
+   {
+      
+   }
+}
