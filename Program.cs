@@ -57,9 +57,19 @@ class Program
    {
       if (pressedKey.Key == ConsoleKey.W) --pacmanY;
       else if (pressedKey.Key == ConsoleKey.S) ++pacmanY;
-      else if (pressedKey.Key == ConsoleKey.D) ++pacmanX;
       else if (pressedKey.Key == ConsoleKey.A) --pacmanX;
+      else if (pressedKey.Key == ConsoleKey.D) ++pacmanX;
+   }
+   private static int[] GetDirection(ConsoleKeyInfo pressedKey)
+   {
+      int[] direction = { 0, 0 };
 
+      if (pressedKey.Key == ConsoleKey.W) direction[1] = -1;
+      else if (pressedKey.Key == ConsoleKey.S) direction[1] = 1;
+      else if (pressedKey.Key == ConsoleKey.A) direction[0] = -1;
+      else if (pressedKey.Key == ConsoleKey.D) direction[0] = 1;
+
+      return direction;
    }
    private static int GetMaxLengthOfLine(string[] lines)
    {
