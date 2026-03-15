@@ -12,7 +12,7 @@ class Program
 
    static Program()
    {
-      map = ReadMap("map.txt");
+      SetMapFromFile("map.txt");
       pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
    }
    static void Main()
@@ -28,10 +28,10 @@ class Program
       {
          Console.Clear();
 
-         HandleInput(pressedKey, ref pacmanX, ref pacmanY, map, ref score);
+         HandleInput();
 
          Console.ForegroundColor = ConsoleColor.Blue;
-         DrawMap(map);
+         DrawMap();
 
          Console.ForegroundColor = ConsoleColor.Yellow;
          Console.SetCursorPosition(pacmanX, pacmanY);
@@ -44,18 +44,16 @@ class Program
          Thread.Sleep(500);
       }
    }
-   private static char[,] ReadMap(string path)
+   private static void SetMapFromFile(string path)
    {
       string[] file = File.ReadAllLines(path);
-      char[,] map = new char[file.Length, GetMaxLengthOfLine(file)];
+      map = new char[file.Length, GetMaxLengthOfLine(file)];
 
       for (int x = 0; x < map.GetLength(0); x++)
          for (int y = 0; y < map.GetLength(1); y++)
             map[x, y] = file[x][y];
-
-      return map;
    }
-   private static void DrawMap(char[,] map)
+   private static void DrawMap()
    {
       for (int x = 0; x < map.GetLength(0); x++)
       {
@@ -64,9 +62,9 @@ class Program
          Console.WriteLine();
       }
    }
-   private static void HandleInput(ConsoleKeyInfo pressedKey, ref int pacmanX, ref int pacmanY, char[,] map, ref int score)
+   private static void HandleInput()
    {
-      int[] direction = GetDirection(pressedKey);
+      int[] direction = GetDirection();
 
       int nextX = pacmanX + direction[0];
       int nextY = pacmanY + direction[1];
@@ -85,7 +83,7 @@ class Program
          }
       }
    }
-   private static int[] GetDirection(ConsoleKeyInfo pressedKey)
+   private static int[] GetDirection()
    {
       int[] direction = [0, 0];
 
