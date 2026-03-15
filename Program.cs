@@ -21,29 +21,7 @@ class Program
       }
       catch (FileNotFoundException)
       {
-         string? input = "Y";
-         Console.WriteLine("Файл с картой не найден!\n");
-         Console.WriteLine("Желаете создать файл map.txt в данной директории? [Y/n]");
-         Console.WriteLine(Directory.GetCurrentDirectory() + "\n");
-
-         input = Console.ReadLine();
-
-         switch (input)
-         {
-            case "Y":
-            case "y":
-            case "":
-            case null:
-               File.CreateText("map.txt");
-               Console.WriteLine("Создан пустой файл map.txt");
-               break;
-            case "N":
-            case "n":
-               break;
-            default: Console.WriteLine("Вы ввели некоректное значение");
-               break;
-         }
-
+         CreateMap();
          map = GetMapFromFile("map.txt");
       }
    }
@@ -96,6 +74,38 @@ class Program
          if (s == symbol) result++;
 
       return result;
+   }
+   private static void CreateMap()
+   {
+      bool var = true;
+      while (var)
+      {
+         string? input = "Y";
+         Console.WriteLine("Файл с картой не найден!\n");
+         Console.WriteLine("Желаете создать файл map.txt в данной директории? [Y/n]");
+         Console.WriteLine(Directory.GetCurrentDirectory() + "\n");
+
+         input = Console.ReadLine();
+
+         switch (input)
+         {
+            case "Y":
+            case "y":
+            case "":
+            case null:
+               File.CreateText("map.txt");
+               Console.WriteLine("Создан пустой файл map.txt");
+               var = false;
+               break;
+            case "N":
+            case "n":
+               var = false;
+               break;
+            default:
+               Console.WriteLine("Вы ввели некоректное значение");
+               break;
+         }
+      }
    }
    private static char[,] GetMapFromFile(string path)
    {
