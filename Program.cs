@@ -13,9 +13,39 @@ class Program
 
    static Program()
    {
-      map = GetMapFromFile("map.txt");
-      pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
-      maxScore = GetCountOfSymbol('.', map);
+      try
+      {
+         map = GetMapFromFile("map.txt");
+         pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
+         maxScore = GetCountOfSymbol('.', map);
+      }
+      catch (FileNotFoundException)
+      {
+         string? input = "Y";
+         Console.WriteLine("Файл с картой не найден!\n");
+         Console.WriteLine("Желаете создать файл map.txt в данной директории? [Y/n]");
+         Console.WriteLine(Directory.GetCurrentDirectory() + "\n");
+
+         input = Console.ReadLine();
+
+         switch (input)
+         {
+            case "Y":
+            case "y":
+            case "":
+            case null:
+               File.CreateText("map.txt");
+               Console.WriteLine("Создан пустой файл map.txt");
+               break;
+            case "N":
+            case "n":
+               break;
+            default: Console.WriteLine("Вы ввели некоректное значение");
+               break;
+         }
+
+         map = GetMapFromFile("map.txt");
+      }
    }
    static void Main()
    {
