@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 
 class Program
 {
@@ -10,6 +11,11 @@ class Program
       char[,] map = ReadMap("map.txt");
       ConsoleKeyInfo pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
 
+      Task.Run(() =>
+      {
+         while (true) pressedKey = Console.ReadKey();
+      });
+
       int pacmanX = 1;
       int pacmanY = 1;
       int score = 0;
@@ -17,6 +23,8 @@ class Program
       while (true)
       {
          Console.Clear();
+
+         HandleInput(pressedKey, ref pacmanX, ref pacmanY, map, ref score);
 
          Console.ForegroundColor = ConsoleColor.Blue;
          DrawMap(map);
@@ -29,14 +37,12 @@ class Program
          Console.SetCursorPosition(32, 0);
          Console.Write("Score: {0}", score);
 
-         pressedKey = Console.ReadKey();
-
-         HandleInput(pressedKey, ref pacmanX, ref pacmanY, map, ref score);
+         Thread.Sleep(500);
       }
    }
    private static char[,] ReadMap(string path)
    {
-      string[] file = File.ReadAllLines("map.txt");
+      string[] file = File.ReadAllLines(path);
       char[,] map = new char[file.Length, GetMaxLengthOfLine(file)];
 
       for (int x = 0; x < map.GetLength(0); x++)
@@ -68,7 +74,7 @@ class Program
          pacmanX = nextX;
          pacmanY = nextY;
 
-         if(nextCell == '.')
+         if (nextCell == '.')
          {
             score++;
             map[nextY, nextX] = ' ';
