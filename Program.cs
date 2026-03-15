@@ -9,11 +9,13 @@ class Program
    static int pacmanX = 1;
    static int pacmanY = 1;
    static int score;
+   static int maxScore;
 
    static Program()
    {
       SetMapFromFile("map.txt");
       pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
+      maxScore = GetCountOfSymbol('.', map);
    }
    static void Main()
    {
@@ -43,6 +45,15 @@ class Program
 
          Thread.Sleep(500);
       }
+   }
+   private static int GetCountOfSymbol(char symbol, char[,] array)
+   {
+      int result = 0;
+
+      foreach (var s in array)
+         if (s == symbol) result++;
+
+      return result;
    }
    private static void SetMapFromFile(string path)
    {
