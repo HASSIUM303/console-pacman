@@ -40,11 +40,20 @@ class Program
          Console.Write("@");
 
          Console.ForegroundColor = ConsoleColor.Red;
-         Console.SetCursorPosition(32, 0);
-         Console.Write("Score: {0}", score);
+         Console.SetCursorPosition(map.GetLength(1) + 1, 0);
+         Console.Write($"Score: {score}/{maxScore}");
+
+         if (score >= maxScore)
+         {
+            Console.SetCursorPosition(map.GetLength(1) + 1, map.GetLength(0) - 1);
+            Console.Write("YOU WIN!");
+            break;
+         }
 
          Thread.Sleep(500);
       }
+      
+      Console.ReadKey();
    }
    private static int GetCountOfSymbol(char symbol, char[,] array)
    {
