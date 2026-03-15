@@ -13,7 +13,7 @@ class Program
 
    static Program()
    {
-      SetMapFromFile("map.txt");
+      map = GetMapFromFile("map.txt");
       pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
       maxScore = GetCountOfSymbol('.', map);
    }
@@ -55,14 +55,16 @@ class Program
 
       return result;
    }
-   private static void SetMapFromFile(string path)
+   private static char[,] GetMapFromFile(string path)
    {
       string[] file = File.ReadAllLines(path);
-      map = new char[file.Length, GetMaxLengthOfLine(file)];
+      char[,] map = new char[file.Length, GetMaxLengthOfLine(file)];
 
       for (int x = 0; x < map.GetLength(0); x++)
          for (int y = 0; y < map.GetLength(1); y++)
             map[x, y] = file[x][y];
+
+      return map;
    }
    private static void DrawMap()
    {
