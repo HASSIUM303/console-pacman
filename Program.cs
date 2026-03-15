@@ -4,21 +4,25 @@ using System.Threading;
 
 class Program
 {
+   static char[,] map;
+   static ConsoleKeyInfo pressedKey;
+   static int pacmanX = 1;
+   static int pacmanY = 1;
+   static int score;
+
+   static Program()
+   {
+      map = ReadMap("map.txt");
+      pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
+   }
    static void Main()
    {
       Console.CursorVisible = false;
-
-      char[,] map = ReadMap("map.txt");
-      ConsoleKeyInfo pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
 
       Task.Run(() =>
       {
          while (true) pressedKey = Console.ReadKey();
       });
-
-      int pacmanX = 1;
-      int pacmanY = 1;
-      int score = 0;
 
       while (true)
       {
@@ -51,7 +55,7 @@ class Program
 
       return map;
    }
-   public static void DrawMap(char[,] map)
+   private static void DrawMap(char[,] map)
    {
       for (int x = 0; x < map.GetLength(0); x++)
       {
