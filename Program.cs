@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 class Program
@@ -15,31 +16,9 @@ class Program
    static void Main()
    {
       Console.CursorVisible = false;
-
       Directory.SetCurrentDirectory(AppContext.BaseDirectory);
-      try
-      {
-         map = GetMapFromFile(MapFileName);
-      }
-      catch (FileNotFoundException)
-      {
-         if (CreateMap(MapFileName))
-         {
-            Console.WriteLine($"Создан пустой файл карты: {MapFileName}");
-            Console.WriteLine($"Директория: {Directory.GetCurrentDirectory()}");
-            Console.WriteLine("Заполните файл картой и запустите игру снова.");
-         }
-         Console.ReadKey(true);
-         return;
-      }
-      catch (Exception ex) when (ex is InvalidDataException or IOException)
-      {
-         Console.WriteLine($"Ошибка чтения карты: {MapFileName}");
-         Console.WriteLine($"Директория: {Directory.GetCurrentDirectory()}");
-         Console.WriteLine(ex.Message);
-         Console.ReadKey(true);
-         return;
-      }
+
+      if (!TryMapInit()) return;
 
       pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
       maxScore = GetCountOfSymbol('.', map);
@@ -81,6 +60,37 @@ class Program
 
       Console.ReadKey();
    }
+   private static bool TryMapInit()
+   {
+      bool isWorking = true;
+      try
+      {
+         map = GetMapFromFile(MapFileName);
+      }
+      catch (FileNotFoundException)
+      {
+         if (CreateMap(MapFileName))
+         {
+            Console.WriteLine($"Создан пустой файл карты: {MapFileName}");
+            Console.WriteLine($"Директория: {Directory.GetCurrentDirectory()}");
+            Console.WriteLine("Заполните файл картой и запустите игру снова.");
+         }
+         Console.ReadKey(true);
+         isWorking = false;
+      }
+      catch (Exception ex) when (ex is InvalidDataException or IOException)
+      {
+         Console.WriteLine($"Ошибка чтения карты: {MapFileName}");
+         Console.WriteLine($"Директория: {Directory.GetCurrentDirectory()}");
+         Console.WriteLine(ex.Message);
+         Console.ReadKey(true);
+         isWorking = false; ;
+      }
+      catch (Exception)
+      { isWorking = false; }
+
+      return isWorking;
+   }
    private static int GetCountOfSymbol(char symbol, char[,] array)
    {
       int result = 0;
@@ -107,7 +117,7 @@ class Program
             case "":
             case null:
                using (File.Create(path))
-               return true;
+                  return true;
             case "N":
             case "n":
                return false;
