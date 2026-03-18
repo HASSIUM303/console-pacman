@@ -12,6 +12,7 @@ class Program
    static int pacmanY = 1;
    static int score;
    static int maxScore;
+   static int speed = 500;
 
    static void Main()
    {
@@ -22,6 +23,10 @@ class Program
 
       pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
       maxScore = GetCountOfSymbol('.', map);
+
+      Console.Write("Введите скорость для пакмена в милисекундах: ");
+      speed = Convert.ToInt32(Console.ReadLine());
+
 
       Task.Run(() =>
       {
@@ -55,7 +60,7 @@ class Program
             break;
          }
 
-         Thread.Sleep(500);
+         Thread.Sleep(speed);
       }
 
       Console.ReadKey();
