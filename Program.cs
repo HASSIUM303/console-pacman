@@ -4,34 +4,49 @@ using System.Threading;
 
 class Program
 {
-   static char[,] map;
+   private const string MapFileName = "map.txt";
+   static char[,] map = null!;
    static ConsoleKeyInfo pressedKey;
    static int pacmanX = 1;
    static int pacmanY = 1;
    static int score;
    static int maxScore;
 
-   static Program()
-   {
-      try
-      {
-         map = GetMapFromFile("map.txt");
-         pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
-         maxScore = GetCountOfSymbol('.', map);
-      }
-      catch (FileNotFoundException)
-      {
-         CreateMap();
-         map = GetMapFromFile("map.txt");
-      }
-   }
    static void Main()
    {
       Console.CursorVisible = false;
 
+      Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+      try
+      {
+         map = GetMapFromFile(MapFileName);
+      }
+      catch (FileNotFoundException)
+      {
+         if (CreateMap(MapFileName))
+         {
+            Console.WriteLine($"Создан пустой файл карты: {MapFileName}");
+            Console.WriteLine($"Директория: {Directory.GetCurrentDirectory()}");
+            Console.WriteLine("Заполните файл картой и запустите игру снова.");
+         }
+         Console.ReadKey(true);
+         return;
+      }
+      catch (Exception ex) when (ex is InvalidDataException or IOException)
+      {
+         Console.WriteLine($"Ошибка чтения карты: {MapFileName}");
+         Console.WriteLine($"Директория: {Directory.GetCurrentDirectory()}");
+         Console.WriteLine(ex.Message);
+         Console.ReadKey(true);
+         return;
+      }
+
+      pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
+      maxScore = GetCountOfSymbol('.', map);
+
       Task.Run(() =>
       {
-         while (true) pressedKey = Console.ReadKey();
+         while (true) pressedKey = Console.ReadKey(true);
       });
 
       while (true)
@@ -75,17 +90,15 @@ class Program
 
       return result;
    }
-   private static void CreateMap()
+   private static bool CreateMap(string path)
    {
-      bool var = true;
-      while (var)
+      while (true)
       {
-         string? input = "Y";
          Console.WriteLine("Файл с картой не найден!\n");
          Console.WriteLine("Желаете создать файл map.txt в данной директории? [Y/n]");
          Console.WriteLine(Directory.GetCurrentDirectory() + "\n");
 
-         input = Console.ReadLine();
+         string? input = Console.ReadLine()?.Trim();
 
          switch (input)
          {
@@ -93,14 +106,11 @@ class Program
             case "y":
             case "":
             case null:
-               File.CreateText("map.txt");
-               Console.WriteLine("Создан пустой файл map.txt");
-               var = false;
-               break;
+               using (File.Create(path))
+               return true;
             case "N":
             case "n":
-               var = false;
-               break;
+               return false;
             default:
                Console.WriteLine("Вы ввели некоректное значение");
                break;
@@ -110,6 +120,10 @@ class Program
    private static char[,] GetMapFromFile(string path)
    {
       string[] file = File.ReadAllLines(path);
+
+      if (file.Length == 0)
+         throw new InvalidDataException("Файл карты пустой.");
+
       char[,] map = new char[file.Length, GetMaxLengthOfLine(file)];
 
       for (int x = 0; x < map.GetLength(0); x++)
