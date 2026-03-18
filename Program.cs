@@ -34,20 +34,19 @@ class Program
       });
 
       Console.Clear();
+      DrawElements(ConsoleColor.Blue, '#');
 
       while (true)
       {
          HandleInput();
 
-         Console.ForegroundColor = ConsoleColor.Blue;
-         DrawElements(ConsoleColor.Blue, '#', '.', ' ');
+         DrawElements(ConsoleColor.DarkMagenta, '.', ' ');
 
          Console.ForegroundColor = ConsoleColor.Yellow;
          Console.SetCursorPosition(pacmanX, pacmanY);
          Console.Write("@");
 
          Console.ForegroundColor = ConsoleColor.Red;
-
          Console.SetCursorPosition(map.GetLength(1) + 1, 0);
          Console.Write($"Score: {score}/{maxScore}");
          Console.SetCursorPosition(map.GetLength(1) + 1, 1);
@@ -63,7 +62,7 @@ class Program
          Thread.Sleep(speed);
       }
 
-      Console.ReadKey();
+      Console.ReadKey(true);
    }
    private static bool TryMapInit()
    {
