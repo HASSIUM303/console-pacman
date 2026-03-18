@@ -16,7 +16,6 @@ class Program
 
    static void Main()
    {
-      Console.CursorVisible = false;
       Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
       if (!TryMapInit()) return;
@@ -27,20 +26,21 @@ class Program
       Console.Write("Введите скорость для пакмена в милисекундах: ");
       speed = Convert.ToInt32(Console.ReadLine());
 
+      Console.CursorVisible = false;
 
       Task.Run(() =>
       {
          while (true) pressedKey = Console.ReadKey(true);
       });
 
+      Console.Clear();
+
       while (true)
       {
-         Console.Clear();
-
          HandleInput();
 
          Console.ForegroundColor = ConsoleColor.Blue;
-         DrawMap();
+         DrawElements(ConsoleColor.Blue, '#', '.', ' ');
 
          Console.ForegroundColor = ConsoleColor.Yellow;
          Console.SetCursorPosition(pacmanX, pacmanY);
@@ -147,13 +147,32 @@ class Program
 
       return map;
    }
-   private static void DrawMap()
+   private static void DrawElements(ConsoleColor color, params char[] elements)
    {
+      ConsoleColor defaultColor = Console.ForegroundColor;
+      Console.ForegroundColor = color;
+
       for (int x = 0; x < map.GetLength(0); x++)
       {
          for (int y = 0; y < map.GetLength(1); y++)
-            Console.Write(map[x, y]);
-         Console.WriteLine();
+         {
+            if (ElementContains(map[x, y]))
+            {
+               Console.SetCursorPosition(y, x);
+               Console.Write(map[x, y]);
+            }
+         }
+      }
+
+      Console.ForegroundColor = defaultColor;
+
+      bool ElementContains(char currentChar)
+      {
+         foreach (var element in elements)
+            if (currentChar == element)
+               return true;
+
+         return false;
       }
    }
    private static void HandleInput()
