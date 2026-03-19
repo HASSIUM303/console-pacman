@@ -23,7 +23,7 @@ class Program
       pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
       maxScore = GetCountOfSymbol('.', map);
 
-      Console.Write("Введите скорость для пакмена в милисекундах: ");
+      Console.Write("Введите скорость для пакмена в миллисекунда: ");
       speed = Convert.ToInt32(Console.ReadLine());
 
       Console.CursorVisible = false;
@@ -126,7 +126,7 @@ class Program
             case "n":
                return false;
             default:
-               Console.WriteLine("Вы ввели некоректное значение");
+               Console.WriteLine("Вы ввели некорректное значение");
                break;
          }
       }
