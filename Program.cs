@@ -5,7 +5,7 @@ using System.Threading;
 
 class Program
 {
-   private const string MapFileName = "map.txt";
+   static string MapPath = "maps/map.txt";
    static char[,] map = null!;
    static ConsoleKeyInfo pressedKey;
    static int pacmanX = 1;
@@ -18,7 +18,9 @@ class Program
    {
       Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
-      if (!TryMapInit()) return;
+      MapPath = SelectMapPath();
+
+      if (!TryMapInit(MapPath)) return;
 
       pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
       maxScore = GetCountOfSymbol('.', map);
@@ -64,18 +66,50 @@ class Program
 
       Console.ReadKey(true);
    }
-   private static bool TryMapInit()
+   private static string[] GetMaps()
+   {
+      string mapsDirectory = Path.Combine(AppContext.BaseDirectory, "maps");
+
+      if (!Directory.Exists(mapsDirectory))
+         return [];
+
+      return Directory.GetFiles(mapsDirectory);
+   }
+   private static string SelectMapPath()
+   {
+      string[] maps = GetMaps();
+
+      if (maps.Length == 0)
+         return Path.Combine(AppContext.BaseDirectory, "maps", "map.txt");
+
+      Console.WriteLine("Доступные карты:");
+
+      for (int i = 0; i < maps.Length; i++)
+         Console.WriteLine($"{i + 1}. {Path.GetFileName(maps[i])}");
+
+      while (true)
+      {
+         Console.Write($"Выберите карту [1-{maps.Length}]: ");
+
+         if (int.TryParse(Console.ReadLine(), out int choice) &&
+             choice >= 1 && choice <= maps.Length)
+            return maps[choice - 1];
+
+         Console.WriteLine("Некорректный выбор, попробуйте ещё раз.");
+      }
+   }
+   private static bool TryMapInit(string mapPath)
    {
       bool isWorking = true;
       try
       {
-         map = GetMapFromFile(MapFileName);
+         map = GetMapFromFile(mapPath);
       }
       catch (FileNotFoundException)
       {
-         if (CreateMap(MapFileName))
+         if (CreateMap(mapPath))
          {
-            Console.WriteLine($"Создан пустой файл карты: {MapFileName}");
+            Console.WriteLine($"Создан пустой файл карты: {mapPath}");
             Console.WriteLine($"Директория: {Directory.GetCurrentDirectory()}");
             Console.WriteLine("Заполните файл картой и запустите игру снова.");
          }
@@ -84,7 +118,7 @@ class Program
       }
       catch (Exception ex) when (ex is InvalidDataException or IOException)
       {
-         Console.WriteLine($"Ошибка чтения карты: {MapFileName}");
+         Console.WriteLine($"Ошибка чтения карты: {mapPath}");
          Console.WriteLine($"Директория: {Directory.GetCurrentDirectory()}");
          Console.WriteLine(ex.Message);
          Console.ReadKey(true);

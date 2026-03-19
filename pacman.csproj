@@ -8,9 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="maps/map.txt">
+    <Content Include="maps\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>map.txt</TargetPath>
     </Content>
   </ItemGroup>
 
