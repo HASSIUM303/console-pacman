@@ -2,28 +2,46 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 class Program
 {
     static string MapPath = "maps/map.txt";
     static char[,] map = null!;
     static ConsoleKeyInfo pressedKey;
-    static int pacmanX = 1;
-    static int pacmanY = 1;
     static int score;
     static int maxScore;
     static int speed = 500;
+    static Pacman pacman = null!;
+    static List<Ghost> ghosts = [];
 
     static void Main()
     {
         Directory.SetCurrentDirectory(AppContext.BaseDirectory);
-
         MapPath = SelectMapPath();
 
         if (!TryMapInit(MapPath)) return;
 
         pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
         maxScore = GetCountOfSymbol('.', map);
+
+        int pacmanStartX = 1, pacmanStartY = 1;
+        for (int y = 0; y < map.GetLength(0); y++)
+        {
+            for (int x = 0; x < map.GetLength(1); x++)
+            {
+                if (map[y, x] == ' ')
+                {
+                    pacmanStartX = x;
+                    pacmanStartY = y;
+                    break;
+                }
+            }
+        }
+
+        pacman = new Pacman(pacmanStartX, pacmanStartY, map, maxScore);
+
+        CreateGhosts();
 
         Console.Write("Введите скорость для пакмена в миллисекунда: ");
         speed = Convert.ToInt32(Console.ReadLine());
@@ -35,18 +53,27 @@ class Program
             while (true) pressedKey = Console.ReadKey(true);
         });
 
+
         Console.Clear();
         DrawElements(ConsoleColor.Blue, '#');
 
-        while (true)
+        pacman.Draw();
+        foreach (var ghost in ghosts)
+            ghost.Draw();
+
+        bool isGameRunning = true;
+
+
+        while (isGameRunning)
         {
             HandleInput();
 
             DrawElements(ConsoleColor.DarkMagenta, '.', ' ');
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.SetCursorPosition(pacmanX, pacmanY);
-            Console.Write("@");
+            pacman.Draw();
+
+            foreach (var ghost in ghosts)
+                ghost.MoveAsync().Wait();
 
             Console.ForegroundColor = ConsoleColor.Red;
             Console.SetCursorPosition(map.GetLength(1) + 1, 0);
@@ -54,11 +81,22 @@ class Program
             Console.SetCursorPosition(map.GetLength(1) + 1, 1);
             Console.Write($"Pressed Key: {pressedKey.KeyChar}  ");
 
-            if (score >= maxScore)
+            if (pacman.IsWin)
             {
                 Console.SetCursorPosition(map.GetLength(1) + 1, map.GetLength(0) - 1);
                 Console.Write("YOU WIN!");
-                break;
+                isGameRunning = false;
+            }
+
+            foreach (Ghost g in ghosts)
+            {
+                if (g.CollidesWith(pacman))
+                {
+                    Console.SetCursorPosition(map.GetLength(1) + 1, map.GetLength(0) - 1);
+                    Console.Write("GAME OVER!");
+                    isGameRunning = false;
+                    break;
+                }
             }
 
             Thread.Sleep(speed);
@@ -66,6 +104,19 @@ class Program
 
         Console.ReadKey(true);
     }
+
+    private static void CreateGhosts()
+    {
+        int ghostId = 0;
+
+        ghosts.Add(new(5, 5, map, pacman, ConsoleColor.Red, ++ghostId));
+        ghosts.Add(new(10, 5, map, pacman, ConsoleColor.Magenta, ++ghostId));
+        ghosts.Add(new(15, 5, map, pacman, ConsoleColor.Cyan, ++ghostId));
+        ghosts.Add(new(20, 5, map, pacman, ConsoleColor.Yellow, ++ghostId));
+
+        Console.WriteLine($"Создано призраков: {ghosts.Count}");
+    }
+
     private static string[] GetMaps()
     {
         string mapsDirectory = Path.Combine(AppContext.BaseDirectory, "maps");
@@ -83,7 +134,6 @@ class Program
             return Path.Combine(AppContext.BaseDirectory, "maps", "map.txt");
 
         Console.WriteLine("Доступные карты:");
-
         for (int i = 0; i < maps.Length; i++)
             Console.WriteLine($"{i + 1}. {Path.GetFileName(maps[i])}");
 
@@ -100,10 +150,10 @@ class Program
     }
     private static bool TryMapInit(string mapPath)
     {
-        bool isWorking = true;
         try
         {
             map = GetMapFromFile(mapPath);
+            return true;
         }
         catch (FileNotFoundException)
         {
@@ -114,7 +164,7 @@ class Program
                 Console.WriteLine("Заполните файл картой и запустите игру снова.");
             }
             Console.ReadKey(true);
-            isWorking = false;
+            return false;
         }
         catch (Exception ex) when (ex is InvalidDataException or IOException)
         {
@@ -122,21 +172,24 @@ class Program
             Console.WriteLine($"Директория: {Directory.GetCurrentDirectory()}");
             Console.WriteLine(ex.Message);
             Console.ReadKey(true);
-            isWorking = false; ;
+            return false; ;
         }
-        catch (Exception)
-        { isWorking = false; }
-
-        return isWorking;
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка: " + ex.Message);
+            Console.ReadKey(true);
+            return false;
+        }
     }
     private static int GetCountOfSymbol(char symbol, char[,] array)
     {
-        int result = 0;
+        int count = 0;
 
         foreach (char s in array)
-            if (s == symbol) result++;
+            if (s == symbol)
+                count++;
 
-        return result;
+        return count;
     }
     private static bool CreateMap(string path)
     {
@@ -167,16 +220,16 @@ class Program
     }
     private static char[,] GetMapFromFile(string path)
     {
-        string[] file = File.ReadAllLines(path);
+        string[] lines = File.ReadAllLines(path);
 
-        if (file.Length == 0)
+        if (lines.Length == 0)
             throw new InvalidDataException("Файл карты пустой.");
 
-        char[,] map = new char[file.Length, GetMaxLengthOfLine(file)];
+        char[,] map = new char[lines.Length, GetMaxLengthOfLine(lines)];
 
         for (int x = 0; x < map.GetLength(0); x++)
             for (int y = 0; y < map.GetLength(1); y++)
-                map[x, y] = file[x][y];
+                map[x, y] = lines[x][y];
 
         return map;
     }
@@ -186,16 +239,12 @@ class Program
         Console.ForegroundColor = color;
 
         for (int x = 0; x < map.GetLength(0); x++)
-        {
             for (int y = 0; y < map.GetLength(1); y++)
-            {
                 if (ElementContains(map[x, y]))
                 {
                     Console.SetCursorPosition(y, x);
                     Console.Write(map[x, y]);
                 }
-            }
-        }
 
         Console.ForegroundColor = defaultColor;
 
@@ -211,34 +260,18 @@ class Program
     private static void HandleInput()
     {
         int[] direction = GetDirection();
-
-        int nextX = pacmanX + direction[0];
-        int nextY = pacmanY + direction[1];
-
-        char nextCell = map[nextY, nextX];
-
-        if (nextCell == ' ' || nextCell == '.')
-        {
-            pacmanX = nextX;
-            pacmanY = nextY;
-
-            if (nextCell == '.')
-            {
-                score++;
-                map[nextY, nextX] = ' ';
-            }
-        }
+        pacman.Move(direction[0], direction[1]);
     }
     private static int[] GetDirection()
     {
-        int[] direction = [0, 0];
-
-        if (pressedKey.Key == ConsoleKey.W) direction[1] = -1;
-        else if (pressedKey.Key == ConsoleKey.S) direction[1] = 1;
-        else if (pressedKey.Key == ConsoleKey.A) direction[0] = -1;
-        else if (pressedKey.Key == ConsoleKey.D) direction[0] = 1;
-
-        return direction;
+        return pressedKey.Key switch
+        {
+            ConsoleKey.W => [0, -1],
+            ConsoleKey.S => [0, 1],
+            ConsoleKey.A => [-1, 0],
+            ConsoleKey.D => [1, 0],
+            _ => [0, 0]
+        };
     }
     private static int GetMaxLengthOfLine(string[] lines)
     {
