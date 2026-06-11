@@ -106,8 +106,6 @@ class Program
 
                 Thread.Sleep(speed);
             }
-
-            Console.ReadKey(true);
         }
         catch (Exception ex)
         {
@@ -118,6 +116,21 @@ class Program
         {
             LoggingBehavior.Close();
         }
+
+        Console.WriteLine("Хотите начать всё сначала? [Y/n]");
+        bool stop = Console.ReadLine()?.Trim() switch
+        {
+            "Y" => true,
+            "y" => true,
+            null => true,
+            "N" => false,
+            "n" => false,
+            _ => false
+        };
+
+        if (stop) Main();
+
+        Console.ReadKey(true);
     }
 
     private static void CreateGhosts()
