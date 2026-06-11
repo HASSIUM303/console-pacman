@@ -9,7 +9,7 @@ class Program
     static string MapPath = "maps/map.txt";
     static char[,] map = null!;
     static ConsoleKeyInfo pressedKey;
-    static int score;
+    //static int score;
     static int maxScore;
     static int speed = 500;
     static Pacman pacman = null!;
@@ -58,26 +58,27 @@ class Program
         DrawElements(ConsoleColor.Blue, '#');
 
         pacman.Draw();
-        foreach (var ghost in ghosts)
-            ghost.Draw();
+        foreach (Ghost g in ghosts)
+            g.Draw();
+
 
         bool isGameRunning = true;
-
-
         while (isGameRunning)
         {
             HandleInput();
 
             DrawElements(ConsoleColor.DarkMagenta, '.', ' ');
-
             pacman.Draw();
 
-            foreach (var ghost in ghosts)
-                ghost.MoveAsync().Wait();
+            foreach (Ghost g in ghosts)
+                g.MoveAsync().GetAwaiter().GetResult();
+
+            foreach (Ghost g in ghosts)
+                g.Draw();
 
             Console.ForegroundColor = ConsoleColor.Red;
             Console.SetCursorPosition(map.GetLength(1) + 1, 0);
-            Console.Write($"Score: {score}/{maxScore}");
+            Console.Write($"Score: {pacman.Score}/{maxScore}");
             Console.SetCursorPosition(map.GetLength(1) + 1, 1);
             Console.Write($"Pressed Key: {pressedKey.KeyChar}  ");
 
@@ -107,12 +108,12 @@ class Program
 
     private static void CreateGhosts()
     {
-        int ghostId = 0;
+        ghosts.Clear();
 
-        ghosts.Add(new(5, 5, map, pacman, ConsoleColor.Red, ++ghostId));
-        ghosts.Add(new(10, 5, map, pacman, ConsoleColor.Magenta, ++ghostId));
-        ghosts.Add(new(15, 5, map, pacman, ConsoleColor.Cyan, ++ghostId));
-        ghosts.Add(new(20, 5, map, pacman, ConsoleColor.Yellow, ++ghostId));
+        ghosts.Add(new(12, 10, map, pacman, ConsoleColor.Red, ghosts));
+        ghosts.Add(new(13, 10, map, pacman, ConsoleColor.Magenta, ghosts));
+        ghosts.Add(new(14, 10, map, pacman, ConsoleColor.Cyan, ghosts));
+        ghosts.Add(new(15, 10, map, pacman, ConsoleColor.Yellow, ghosts));
 
         Console.WriteLine($"Создано призраков: {ghosts.Count}");
     }

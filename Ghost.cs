@@ -11,23 +11,27 @@ class Ghost : IGameCharacter
 
     private readonly char[,] map;
     private readonly Pacman pacman;
-    private static readonly HttpClient httpClient = new();
+    private readonly List<Ghost> ghosts;
+    private static readonly HttpClient httpClient = new()
+    {
+        Timeout = TimeSpan.FromSeconds(2)
+    };
     private readonly string serviceName;
-    private readonly int ghostId;
 
-    public Ghost(int startX, int startY,
+    public Ghost(
+        int startX, int startY,
         char[,] map,
         Pacman pacman,
         ConsoleColor color,
-        int ghostId,
+        List<Ghost> ghosts,
         string serviceName = "http://localhost:8080")
     {
         X = startX;
         Y = startY;
         this.map = map;
         this.pacman = pacman;
+        this.ghosts = ghosts;
         Color = color;
-        this.ghostId = ghostId;
         this.serviceName = serviceName;
     }
 
@@ -36,17 +40,14 @@ class Ghost : IGameCharacter
         Console.ForegroundColor = Color;
         Console.SetCursorPosition(X, Y);
         Console.Write(Symbol);
+        Console.ResetColor();
     }
     public void Erase()
     {
-        Console.SetCursorPosition(X, Y);
-        Console.Write(' ');
     }
 
     public async Task MoveAsync()
     {
-        Erase();
-
         var request = new
         {
             ghostX = X,
@@ -58,45 +59,44 @@ class Ghost : IGameCharacter
             mapHeight = map.GetLength(0)
         };
 
+        int nextX = X;
+        int nextY = Y;
+        bool usedServiceMove = false;
+        bool serviceAvailable = false;
+
         try
         {
             string json = JsonSerializer.Serialize(request);
             StringContent content = new(json, Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await httpClient.PostAsync($"{serviceName}/path", content);
+            serviceAvailable = response.IsSuccessStatusCode;
 
-            if (response.IsSuccessStatusCode)
+            if (serviceAvailable)
             {
                 string responseJson = await response.Content.ReadAsStringAsync();
                 PathResponse? pathResponse = JsonSerializer.Deserialize<PathResponse>(responseJson);
 
                 if (pathResponse != null && pathResponse.Found)
                 {
-                    X = pathResponse.NextX;
-                    Y = pathResponse.NextY;
+                    if (IsValidMove(pathResponse.NextX, pathResponse.NextY))
+                    {
+                        nextX = pathResponse.NextX;
+                        nextY = pathResponse.NextY;
+                        usedServiceMove = true;
+                    }
                 }
             }
         }
         catch (Exception)
         {
-            MoveSinple();
+            serviceAvailable = false;
         }
 
-        Draw();
-    }
-
-    private void MoveSinple()
-    {
-        int dx = pacman.X - X;
-        int dy = pacman.Y - Y;
-
-        int nextX = X;
-        int nextY = Y;
-
-        if (Math.Abs(dx) > Math.Abs(dy))
-            nextX += dx > 0 ? 1 : -1;
-        else
-            nextY += dy > 0 ? 1 : -1;
+        if (!serviceAvailable || !usedServiceMove)
+        {
+            MoveSimple(ref nextX, ref nextY);
+        }
 
         if (IsValidMove(nextX, nextY))
         {
@@ -105,13 +105,62 @@ class Ghost : IGameCharacter
         }
     }
 
+    private void MoveSimple(ref int nextX, ref int nextY)
+    {
+        int dx = pacman.X - X;
+        int dy = pacman.Y - Y;
+
+        if (Math.Abs(dx) > Math.Abs(dy))
+            nextX += dx > 0 ? 1 : -1;
+        else
+            nextY += dy > 0 ? 1 : -1;
+
+        if (!IsValidMove(nextX, nextY))
+        {
+            int[][] directions =
+            [
+                [1, 0],
+                [-1, 0],
+                [0, 1],
+                [0, -1]
+            ];
+
+            foreach (int[] dir in directions)
+            {
+                int testX = X + dir[0];
+                int testY = Y + dir[1];
+
+                if (IsValidMove(testX, testY))
+                {
+                    nextX = testX;
+                    nextY = testY;
+                    return;
+                }
+            }
+        }
+    }
+
     private bool IsValidMove(int x, int y)
     {
         if (x < 0 || x >= map.GetLength(1) || y < 0 || y >= map.GetLength(0))
             return false;
 
+        if (IsOccupiedByOtherGhost(x, y))
+            return false;
+
         char cell = map[y, x];
         return cell == ' ' || cell == '.';
+    }
+
+    private bool IsOccupiedByOtherGhost(int x, int y)
+    {
+        foreach (Ghost ghost in ghosts)
+        {
+            if (!ReferenceEquals(ghost, this) && ghost.X == x && ghost.Y == y)
+                return true;
+        }
+
+        return false;
     }
 
     private int[][] MapToIntArray()

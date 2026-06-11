@@ -42,7 +42,7 @@ func bfsFindPath(req PathRequest) (int, int, bool) {
 	}
 
 	visited := make([][]bool, req.MapHeight)
-	parent := make([][]struct{ px, py int }, req.MapWidth)
+	parent := make([][]struct{ px, py int }, req.MapHeight)
 
 	for i := range visited {
 		visited[i] = make([]bool, req.MapWidth)
@@ -81,7 +81,7 @@ func bfsFindPath(req PathRequest) (int, int, bool) {
 func restorePath(sx, sy, tx, ty int, parent [][]struct{ px, py int }) (int, int, bool) {
 	cx, cy := tx, ty
 
-	if cx == sx && cy == cx {
+	if cx == sx && cy == sy {
 		return sx, sy, false
 	}
 
@@ -139,3 +139,4 @@ func main() {
 	fmt.Printf("Сервис логики призраков запущен по порту: %s\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
+	
