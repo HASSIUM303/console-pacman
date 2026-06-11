@@ -35,12 +35,13 @@ func bfsFindPath(req PathRequest) (int, int, bool) {
 	}
 
 	dirs := []struct{ dx, dy int }{
-		{0, -1},
-		{0, 1},
-		{-1, 0},
-		{1, 0},
+		{0, -1}, //вверх
+		{0, 1},  //вниз
+		{-1, 0}, //влево
+		{1, 0},  //вправо
 	}
 
+	//создание срезов
 	visited := make([][]bool, req.MapHeight)
 	parent := make([][]struct{ px, py int }, req.MapHeight)
 
@@ -139,4 +140,3 @@ func main() {
 	fmt.Printf("Сервис логики призраков запущен по порту: %s\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
-	

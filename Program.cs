@@ -9,7 +9,6 @@ class Program
     static string MapPath = "maps/map.txt";
     static char[,] map = null!;
     static ConsoleKeyInfo pressedKey;
-    //static int score;
     static int maxScore;
     static int speed = 500;
     static Pacman pacman = null!;
