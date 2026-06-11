@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 class Program
 {
@@ -16,93 +17,107 @@ class Program
 
     static void Main()
     {
-        Directory.SetCurrentDirectory(AppContext.BaseDirectory);
-        MapPath = SelectMapPath();
+        LoggingBehavior.Configure();
 
-        if (!TryMapInit(MapPath)) return;
-
-        pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
-        maxScore = GetCountOfSymbol('.', map);
-
-        int pacmanStartX = 1, pacmanStartY = 1;
-        for (int y = 0; y < map.GetLength(0); y++)
+        try
         {
-            for (int x = 0; x < map.GetLength(1); x++)
+            Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+            MapPath = SelectMapPath();
+
+            if (!TryMapInit(MapPath)) return;
+
+            pressedKey = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
+            maxScore = GetCountOfSymbol('.', map);
+
+            int pacmanStartX = 1, pacmanStartY = 1;
+            for (int y = 0; y < map.GetLength(0); y++)
             {
-                if (map[y, x] == ' ')
+                for (int x = 0; x < map.GetLength(1); x++)
                 {
-                    pacmanStartX = x;
-                    pacmanStartY = y;
-                    break;
+                    if (map[y, x] == ' ')
+                    {
+                        pacmanStartX = x;
+                        pacmanStartY = y;
+                        break;
+                    }
                 }
             }
-        }
 
-        pacman = new Pacman(pacmanStartX, pacmanStartY, map, maxScore);
+            pacman = new Pacman(pacmanStartX, pacmanStartY, map, maxScore);
 
-        CreateGhosts();
+            CreateGhosts();
 
-        Console.Write("Введите скорость для пакмена в миллисекунда: ");
-        speed = Convert.ToInt32(Console.ReadLine());
+            Console.Write("Введите скорость для пакмена в миллисекунда: ");
+            speed = Convert.ToInt32(Console.ReadLine());
 
-        Console.CursorVisible = false;
+            Console.CursorVisible = false;
 
-        Task.Run(() =>
-        {
-            while (true) pressedKey = Console.ReadKey(true);
-        });
-
-
-        Console.Clear();
-        DrawElements(ConsoleColor.Blue, '#');
-
-        pacman.Draw();
-        foreach (Ghost g in ghosts)
-            g.Draw();
+            Task.Run(() =>
+            {
+                while (true) pressedKey = Console.ReadKey(true);
+            });
 
 
-        bool isGameRunning = true;
-        while (isGameRunning)
-        {
-            HandleInput();
+            Console.Clear();
+            DrawElements(ConsoleColor.Blue, '#');
 
-            DrawElements(ConsoleColor.DarkMagenta, '.', ' ');
             pacman.Draw();
-
-            foreach (Ghost g in ghosts)
-                g.MoveAsync().GetAwaiter().GetResult();
-
             foreach (Ghost g in ghosts)
                 g.Draw();
 
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.SetCursorPosition(map.GetLength(1) + 1, 0);
-            Console.Write($"Score: {pacman.Score}/{maxScore}");
-            Console.SetCursorPosition(map.GetLength(1) + 1, 1);
-            Console.Write($"Pressed Key: {pressedKey.KeyChar}  ");
 
-            if (pacman.IsWin)
+            bool isGameRunning = true;
+            while (isGameRunning)
             {
-                Console.SetCursorPosition(map.GetLength(1) + 1, map.GetLength(0) - 1);
-                Console.Write("YOU WIN!");
-                isGameRunning = false;
-            }
+                HandleInput();
 
-            foreach (Ghost g in ghosts)
-            {
-                if (g.CollidesWith(pacman))
+                DrawElements(ConsoleColor.DarkMagenta, '.', ' ');
+                pacman.Draw();
+
+                foreach (Ghost g in ghosts)
+                    g.MoveAsync().GetAwaiter().GetResult();
+
+                foreach (Ghost g in ghosts)
+                    g.Draw();
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.SetCursorPosition(map.GetLength(1) + 1, 0);
+                Console.Write($"Score: {pacman.Score}/{maxScore}");
+                Console.SetCursorPosition(map.GetLength(1) + 1, 1);
+                Console.Write($"Pressed Key: {pressedKey.KeyChar}  ");
+
+                if (pacman.IsWin)
                 {
                     Console.SetCursorPosition(map.GetLength(1) + 1, map.GetLength(0) - 1);
-                    Console.Write("GAME OVER!");
+                    Console.Write("YOU WIN!");
                     isGameRunning = false;
-                    break;
                 }
+
+                foreach (Ghost g in ghosts)
+                {
+                    if (g.CollidesWith(pacman))
+                    {
+                        Console.SetCursorPosition(map.GetLength(1) + 1, map.GetLength(0) - 1);
+                        Console.Write("GAME OVER!");
+                        isGameRunning = false;
+                        break;
+                    }
+                }
+
+                Thread.Sleep(speed);
             }
 
-            Thread.Sleep(speed);
+            Console.ReadKey(true);
         }
-
-        Console.ReadKey(true);
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Unhandled error in game loop");
+            throw;
+        }
+        finally
+        {
+            LoggingBehavior.Close();
+        }
     }
 
     private static void CreateGhosts()
