@@ -117,20 +117,28 @@ class Program
             LoggingBehavior.Close();
         }
 
-        Console.WriteLine("Хотите начать всё сначала? [Y/n]");
+        Console.Write("\nХотите начать всё сначала? [Y/n] ");
         bool stop = Console.ReadLine()?.Trim() switch
         {
             "Y" => true,
             "y" => true,
             null => true,
+            "" => true,
             "N" => false,
             "n" => false,
             _ => false
         };
 
-        if (stop) Main();
-
-        Console.ReadKey(true);
+        if (stop)
+        {
+            Console.CursorVisible = true;
+            Console.ResetColor();
+            Main();
+        }
+        else
+        {
+            Console.ReadKey(true);
+        }
     }
 
     private static void CreateGhosts()
